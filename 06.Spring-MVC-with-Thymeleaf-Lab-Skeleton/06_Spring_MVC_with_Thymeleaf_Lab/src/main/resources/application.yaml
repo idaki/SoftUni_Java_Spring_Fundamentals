@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    username: root
+    password: '1234'
+    url: jdbc:mysql://localhost:3306/Lab?useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+      format_sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+application:
+  name: AuthenticationService
+
+logging:
+  level:
+    org: INFO

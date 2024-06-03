@@ -1,0 +1,14 @@
+th:text
+<option
+th:each ="type: {variable}"- itteration 
+th:text
+th:value
+/>
+<form
+
+th:action="@{/offfers/add}"
+th:method="post"
+th:object="${object}" // used for th:field //creates id,name 
+>
+
+th:for

@@ -12,3 +12,7 @@ th:object="${object}" // used for th:field //creates id,name
 >
 
 th:for
+
+<div 
+th:fragement ="name">  -> <div th:replace="~{directory/name::name}">  
+

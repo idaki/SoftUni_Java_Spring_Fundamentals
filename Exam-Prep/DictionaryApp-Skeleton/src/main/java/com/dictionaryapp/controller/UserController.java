@@ -1,6 +1,7 @@
 package com.dictionaryapp.controller;
 
 import com.dictionaryapp.model.dto.RegisterDto;
+import com.dictionaryapp.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -12,7 +13,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class UserController {
-//g
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @ModelAttribute("registerData")
     public RegisterDto createEmptyDTO() {
         return new RegisterDto();
@@ -28,7 +35,7 @@ public class UserController {
     public String doRegister (@Valid RegisterDto registerDto,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes){
-if (bindingResult.hasErrors()) {
+if (bindingResult.hasErrors() ||  !userService.register(registerDto)) {
     redirectAttributes.addFlashAttribute("registerData", registerDto);
     redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.registerData",bindingResult);
 

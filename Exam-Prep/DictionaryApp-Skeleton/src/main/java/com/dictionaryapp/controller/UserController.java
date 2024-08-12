@@ -1,5 +1,6 @@
 package com.dictionaryapp.controller;
 
+import com.dictionaryapp.model.dto.LoginDto;
 import com.dictionaryapp.model.dto.RegisterDto;
 import com.dictionaryapp.service.UserService;
 import jakarta.validation.Valid;
@@ -25,6 +26,10 @@ public class UserController {
         return new RegisterDto();
     }
 
+    @ModelAttribute("loginData")
+    public LoginDto loginDTO() {
+        return new LoginDto();
+    }
 
     @GetMapping("/register")
     public String viewRegister(){
@@ -32,20 +37,45 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String doRegister (@Valid RegisterDto registerDto,
+    public String doRegister (
+            @Valid RegisterDto registerDto,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes){
 if (bindingResult.hasErrors() ||  !userService.register(registerDto)) {
     redirectAttributes.addFlashAttribute("registerData", registerDto);
     redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.registerData",bindingResult);
-
     return "redirect:/register";
-
 }
-
         return "redirect:/login";
     }
 
+
+
+    @GetMapping("/login")
+        public String viewLogin(){
+            return "/login";
+        }
+
+
+
+    @PostMapping("/login")
+    public String doLogin(
+                            @Valid LoginDto loginDto,
+                            BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes){
+        if (bindingResult.hasErrors() ){
+            redirectAttributes.addFlashAttribute("loginData", loginDto);
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.loginData",bindingResult);
+            return "redirect:/login";
+        }
+       boolean success = userService.login(loginDto);
+
+        if (!success){
+            redirectAttributes.addFlashAttribute("loginData", loginDto);
+            redirectAttributes.addFlashAttribute("UserPassMismatch", true);
+        }
+        return "redirect:/home";
+    }
 
 
 }

@@ -72,9 +72,16 @@ if (bindingResult.hasErrors() ||  !userService.register(registerDto)) {
 
         if (!success){
             redirectAttributes.addFlashAttribute("loginData", loginDto);
-            redirectAttributes.addFlashAttribute("UserPassMismatch", true);
+            redirectAttributes.addFlashAttribute("userPassMismatch", true);
+            return "redirect:login";
         }
         return "redirect:/home";
+    }
+
+    @PostMapping("/logout")
+    public String logout(){
+        userService.logout();
+        return "redirect:/";
     }
 
 

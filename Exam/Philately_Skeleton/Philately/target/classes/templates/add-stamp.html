@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/commons::head"></head>
+<body>
+<header th:replace="fragments/commons::nav"></header>
+<main>
+    <h1 class="text-center mt-2"><span class="badge badge-pill badge-dark">Add Stamp</span></h1>
+    <hr class="hr-3 w-25 bg-white"/>
+
+    <form class="mx-auto w-25 bg-blur rounded"
+          th:action="@{/add-stamp}"
+          th:method="POST"
+          th:object="${addStampDTO}">
+
+        <div class="form-group">
+            <div class="label-holder text-white textCol d-flex justify-content-center">
+                <label for="name" class="h4 mb-2">Name</label>
+            </div>
+            <input type="text"
+                   class="form-control"
+                   id="name"
+                   name="name"
+                   th:field="*{name}"
+                   th:errorclass="'is-invalid alert-danger'"/>
+            <small class="invalid-feedback text-danger" th:if="${#fields.hasErrors('name')}">Name error message</small>
+        </div>
+
+        <div class="form-group">
+            <div class="label-holder text-white textCol d-flex justify-content-center">
+                <label for="description" class="h4 mb-2">Description</label>
+            </div>
+            <input type="text"
+                   class="form-control"
+                   id="description"
+                   name="description"
+                   th:field="*{description}"
+                   th:errorclass="'is-invalid alert-danger'"/>
+            <small class="invalid-feedback text-danger" th:if="${#fields.hasErrors('description')}">Description error message</small>
+        </div>
+
+        <div class="form-group">
+            <div class="label-holder text-white textCol d-flex justify-content-center">
+                <label for="imageUrl" class="h4 mb-2">Image URL</label>
+            </div>
+            <textarea class="form-control"
+                      id="imageUrl"
+                      name="imageUrl"
+                      th:field="*{imageUrl}"
+                      th:errorclass="'is-invalid alert-danger'"></textarea>
+            <small class="invalid-feedback text-danger" th:if="${#fields.hasErrors('imageUrl')}">Image URL error message</small>
+        </div>
+
+        <div class="form-group">
+            <div class="label-holder text-white textCol d-flex justify-content-center">
+                <label for="price" class="h4 mb-2">Price</label>
+            </div>
+            <input type="number"
+                   class="form-control"
+                   id="price"
+                   name="price"
+                   th:field="*{price}"
+                   th:errorclass="'is-invalid alert-danger'"/>
+            <small class="invalid-feedback text-danger" th:if="${#fields.hasErrors('price')}">Price error message</small>
+        </div>
+
+        <div class="form-group">
+            <div class="text-white label-holder d-flex justify-content-center">
+                <label for="paper" class="h4 mb-2">Paper</label>
+            </div>
+            <select class="browser-default custom-select"
+                    id="paper"
+                    name="paper"
+                    th:field="*{paper}"
+                    th:errorclass="'is-invalid alert-danger'">
+                <option value="">Select paper</option>
+                <option th:each="paperType : ${paperTypes}"
+                        th:value="${paperType}"
+                        th:text="${paperType}">
+                </option>
+            </select>
+            <small class="invalid-feedback text-danger" th:if="${#fields.hasErrors('paper')}">Paper error message</small>
+        </div>
+
+        <div class="button-holder d-flex justify-content-center">
+            <button type="submit" class="btn btn-info mb-3">Add Stamp</button>
+        </div>
+    </form>
+</main>
+<footer th:replace="fragments/commons::footer"></footer>
+</body>
+</html>

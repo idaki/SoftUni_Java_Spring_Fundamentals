@@ -12,8 +12,7 @@ import java.util.List;
 public interface StampRepository extends JpaRepository<Stamp, Long> {
     List<Stamp> findByOwner(User owner);
 
-    // Find all stamps purchased by a specific user
-    List<Stamp> findByOwnerAndPurchasedIsTrue(User owner);
+    List<Stamp> findByPurchasedIsFalseAndOwnerIdNot(Long ownerId);
 
     // Find all stamps offered by other users (excluding the current user)
     List<Stamp> findByOwnerNot(User owner);

@@ -10,6 +10,7 @@ import com.philately.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,16 +30,9 @@ public class StampService {
         return stampRepository.findByOwner(user);
     }
 
-    public List<Stamp> findPurchasesByUser(User user) {
-        // Assuming `purchased` is a boolean field to mark purchased stamps
-        return stampRepository.findByOwnerAndPurchasedIsTrue(user);
-    }
-
     public List<Stamp> findOfferedStamps(User user) {
-        return stampRepository.findByOwnerNot(user);
+        return stampRepository.findByPurchasedIsFalseAndOwnerIdNot(user.getId());
     }
-
-
 
     public boolean create(AddStampDTO data, User user) {
         Stamp stamp = new Stamp();
@@ -60,8 +54,7 @@ public class StampService {
     }
 
     @Transactional
-    public void  addToWishlist(Long userId, long stampId) {
-
+    public void addToWishlist(Long userId, long stampId) {
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty()) {
@@ -74,10 +67,9 @@ public class StampService {
         }
 
         Stamp stamp = stampOpt.get();
-
         userOpt.get().addWishedStamp(stamp);
-
-        userRepository.save(userOpt.get());}
+        userRepository.save(userOpt.get());
+    }
 
     @Transactional
     public void removeFromWishlist(Long userId, long stampId) {
@@ -93,17 +85,24 @@ public class StampService {
         }
 
         Stamp stamp = stampOpt.get();
-
-
         userOpt.get().removeWishedStamp(stamp);
-
         userRepository.save(userOpt.get());
     }
+
+    @Transactional
+    public void buyAllStamps(long userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return;
+        }
+        User user = userOpt.get();
+        List<Stamp> wishedStamps = user.getWishedStamps();
+        for (Stamp stamp : wishedStamps) {
+            user.purchaseStamp(stamp);
+            stamp.setPurchased(true);
+            stampRepository.save(stamp);
+        }
+        user.setWishedStamps(new ArrayList<>());
+        userRepository.save(user);
+    }
 }
-
-
-
-
-
-
-

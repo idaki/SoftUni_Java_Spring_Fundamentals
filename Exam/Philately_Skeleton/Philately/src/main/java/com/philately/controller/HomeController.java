@@ -54,7 +54,7 @@ public class HomeController {
 
         // Fetch data in one call if possible
         List<Stamp> myStamps = stampService.findStampsByUser(loggedInUser);
-        List<Stamp> myPurchases = stampService.findPurchasesByUser(loggedInUser);
+        List<Stamp> myPurchases = loggedInUser.getPurchasedStamps();
         List<Stamp> offeredStamps = stampService.findOfferedStamps(loggedInUser);
         List<Stamp> wishlist = loggedInUser.getWishedStamps();
 

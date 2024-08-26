@@ -1,116 +1,117 @@
-package com.philately.controller;
+package com.philately.service;
 
-import com.philately.config.UserSession;
 import com.philately.model.dto.AddStampDTO;
-import com.philately.model.entity.PaperType;
+import com.philately.model.entity.Paper;
 import com.philately.model.entity.Stamp;
 import com.philately.model.entity.User;
+import com.philately.repository.PaperRepository;
 import com.philately.repository.StampRepository;
 import com.philately.repository.UserRepository;
-import com.philately.service.StampService;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
-@Controller
-public class StampController {
 
-    private final StampService stampService;
-    private final UserSession userSession;
-    private final UserRepository userRepository;
+@Service
+public class StampService {
     private final StampRepository stampRepository;
+    private final UserRepository userRepository;
+    private final PaperRepository paperRepository;
 
-    public StampController(StampService stampService, UserSession userSession, UserRepository userRepository, StampRepository stampRepository) {
-        this.stampService = stampService;
-        this.userSession = userSession;
-        this.userRepository = userRepository;
+    public StampService(StampRepository stampRepository, UserRepository userRepository, PaperRepository paperRepository) {
         this.stampRepository = stampRepository;
+        this.userRepository = userRepository;
+        this.paperRepository = paperRepository;
     }
 
-    @ModelAttribute("paperTypes")
-    public List<String> paperTypes() {
-        return Arrays.stream(PaperType.values())
-                .map(PaperType::name)
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/add-stamp")
-    public String addStamp(Model model) {
-        if (!userSession.isUserLoggedIn()) {
-            return "redirect:/";
-        }
-
-        // Add a new instance of AddStampDTO to the model
-        model.addAttribute("addStampDTO", new AddStampDTO());
-
-        return "add-stamp"; // This should be the name of the HTML template file without the extension
-    }
-
-    @PostMapping("/add-stamp")
-    public String doAddStamp(
-            @Valid @ModelAttribute("addStampDTO") AddStampDTO addStampDTO,
-            BindingResult bindingResult,
-            RedirectAttributes redirectAttributes
-    ) {
-        if (!userSession.isUserLoggedIn()) {
-            return "redirect:/";
-        }
-
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("addStampDTO", addStampDTO);
-            redirectAttributes.addFlashAttribute(
-                    "org.springframework.validation.BindingResult.addStampDTO", bindingResult);
-            return "redirect:/add-stamp";
-        }
-
-        String username = userSession.getUsername();
-        User loggedInUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("No user found with username: " + username));
-
-        boolean success = stampService.create(addStampDTO, loggedInUser);
-
-        if (!success) {
-            redirectAttributes.addFlashAttribute("addStampDTO", addStampDTO);
-            redirectAttributes.addFlashAttribute("errorMessage", "Error occurred while creating the stamp.");
-            return "redirect:/add-stamp";
-        }
-
-        return "redirect:/home";
-    }
-
-    @PostMapping("add-to-wishlist/{stampId}")
-    public String addToWishList(@PathVariable long stampId){
-        if (!userSession.isUserLoggedIn()) {
-            return "redirect:/";
-        }
-
-        stampService.addToWishlist(userSession.getId(), stampId);
-
-        return "redirect:/home";
-    }
-
-    @GetMapping("remove-from-wishlist/{stampId}")
-    public String removeFromWishList(@PathVariable long stampId){
-        if (!userSession.isUserLoggedIn()) {
-            return "redirect:/";
-        }
-
-        stampService.removeFromWishlist(userSession.getId(), stampId);
-
-        return "redirect:/home";
+    public List<Stamp> findStampsByUser(User user) {
+        return stampRepository.findByOwner(user);
     }
 
 
+
+    public List<Stamp> findOfferedStamps(User user) {
+
+        return stampRepository.findByPurchasedIsFalseAndOwnerIdNot(user.getId());
+    }
+
+
+
+    public boolean create(AddStampDTO data, User user) {
+        Stamp stamp = new Stamp();
+        Paper paper = paperRepository.findByName(data.getPaper());
+
+        if (paper == null) {
+            return false;
+        }
+
+        stamp.setOwner(user);
+        stamp.setName(data.getName());
+        stamp.setDescription(data.getDescription());
+        stamp.setPurchased(false);
+        stamp.setWished(false);
+        stamp.setImageUrl(data.getImageUrl());
+        stamp.setPaper(paper);
+        stampRepository.save(stamp);
+        return true;
+    }
+
+    @Transactional
+    public void  addToWishlist(Long userId, long stampId) {
+
+        Optional<User> userOpt = userRepository.findById(userId);
+
+        if (userOpt.isEmpty()) {
+            return;
+        }
+
+        Optional<Stamp> stampOpt = stampRepository.findById(stampId);
+        if (stampOpt.isEmpty()) {
+            return;
+        }
+
+        Stamp stamp = stampOpt.get();
+
+        userOpt.get().addWishedStamp(stamp);
+
+        userRepository.save(userOpt.get());}
+
+    @Transactional
+    public void removeFromWishlist(Long userId, long stampId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+
+        if (userOpt.isEmpty()) {
+            return;
+        }
+
+        Optional<Stamp> stampOpt = stampRepository.findById(stampId);
+        if (stampOpt.isEmpty()) {
+            return;
+        }
+
+        Stamp stamp = stampOpt.get();
+
+
+        userOpt.get().removeWishedStamp(stamp);
+
+        userRepository.save(userOpt.get());
+    }
+
+    public void byALlStamps(long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return;
+        }
+        User user = userOpt.get();
+        List<Stamp> wishedStamps = user.getWishedStamps();
+        for (Stamp stamp : wishedStamps) {
+            user.purchaseStamp(stamp);
+            stamp.setPurchased(true);
+            stampRepository.save(stamp);
+        }
+        user.setWishedStamps(new ArrayList<>());
+        userRepository.save(user);
+    }
 }

@@ -93,9 +93,10 @@
                         </table>
                     </div>
                     <div class="buttons-info">
-                        <p style="margin-top: 10px">
-                            <a class="btn-info btn" th:href="@{/buy-all-wishlist}">Buy all</a>
-                        </p>
+                        <div class="buttons-info">
+                            <form th:action="@{/buy-all-wishlist}" method="POST">
+                                <button type="submit" class="btn-outline-info btn" style="margin-top: 10px"> Buy all</button>
+                            </form>
                     </div>
                 </div>
             </div>
